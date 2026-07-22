@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { client } from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { LogOut, UtensilsCrossed, Coffee, Sun, Cookie, CalendarDays, Leaf, Flame, Settings, CalendarRange } from "lucide-react";
 import { motion } from "framer-motion";
@@ -133,7 +133,7 @@ export default function Home() {
     const fetchMenu = async () => {
       setLoading(true);
       try {
-        const items = await base44.entities.MenuItem.filter(
+        const items = await client.entities.MenuItem.filter(
           { menu_date: selectedDate },
           "-created_date"
         );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
+import { client } from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Link, Navigate } from "react-router-dom";
@@ -85,7 +85,7 @@ export default function Admin() {
       const query = {};
       if (filterDate) query.menu_date = filterDate;
       if (filterMeal) query.meal_type = filterMeal;
-      const data = await base44.entities.MenuItem.filter(query, "-menu_date,-created_date", 200);
+      const data = await client.entities.MenuItem.filter(query, "-menu_date,-created_date", 200);
       setItems(data);
     } catch (e) {
       toast({ title: "Erro ao carregar itens", variant: "destructive" });
@@ -117,7 +117,7 @@ export default function Admin() {
   const handleDelete = async (item) => {
     if (!confirm(`Deseja realmente excluir "${item.name}"?`)) return;
     try {
-      await base44.entities.MenuItem.delete(item.id);
+      await client.entities.MenuItem.delete(item.id);
       toast({ title: "Item excluído", description: item.name });
       setItems((prev) => prev.filter((i) => i.id !== item.id));
     } catch (e) {
@@ -129,11 +129,11 @@ export default function Admin() {
     setSaving(true);
     try {
       if (editingItem) {
-        const updated = await base44.entities.MenuItem.update(editingItem.id, payload);
+        const updated = await client.entities.MenuItem.update(editingItem.id, payload);
         setItems((prev) => prev.map((i) => (i.id === editingItem.id ? updated : i)));
         toast({ title: "Item atualizado com sucesso!" });
       } else {
-        const created = await base44.entities.MenuItem.create(payload);
+        const created = await client.entities.MenuItem.create(payload);
         setItems((prev) => [created, ...prev]);
         toast({ title: "Item adicionado ao cardápio!" });
       }

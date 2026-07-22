@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { base44 } from "@/api/base44Client";
+import { client } from "@/api/client";
 import { useAuth } from "@/lib/AuthContext";
 import { Link } from "react-router-dom";
 import {
@@ -149,12 +149,12 @@ export default function CardapioSemanal() {
       setLoading(true);
       try {
         const [items, avisosData] = await Promise.all([
-          base44.entities.MenuItem.filter(
+          client.entities.MenuItem.filter(
             { menu_date: { $gte: weekDays[0], $lte: weekDays[4] } },
             "-created_date",
             300
           ),
-          base44.entities.Aviso.filter(
+          client.entities.Aviso.filter(
             { affected_date: { $gte: weekDays[0], $lte: weekDays[4] } },
             "-created_date",
             200
