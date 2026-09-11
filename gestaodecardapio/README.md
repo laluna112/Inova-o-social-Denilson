@@ -17,10 +17,37 @@ npm install
 Inicie o servidor de desenvolvimento com Vite:
 
 ```bash
+npm install
 npm run dev
 ```
 
 Abra o endereço exibido no terminal.
+
+## Ambientes
+
+O app roda 100% no navegador com dois ambientes separados:
+
+- Desenvolvimento: usa namespace `gestao-cardapio-dev` no localStorage e mantém dados de demo iniciais.
+- Produção: usa namespace `gestao-cardapio-prod` no localStorage e não semeia dados de exemplo.
+
+Para trocar o ambiente, defina a variável:
+
+```bash
+VITE_APP_ENV=development
+# ou
+VITE_APP_ENV=production
+```
+
+Se não for definida, o Vite usa `development` por padrão.
+
+## Usuário administrador mestre
+
+O projeto sempre cria um perfil de administrador mestre na primeira execução no navegador, mesmo em produção:
+
+- E-mail: `admin@escolaintegral.com`
+- Senha: `admin123`
+
+Esse usuário tem acesso à área de gestão do cardápio e pode adicionar/editar/excluir itens e avisos.
 
 ## Scripts úteis
 

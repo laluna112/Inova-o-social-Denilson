@@ -1,11 +1,13 @@
+import { runtimeConfig } from '@/config/runtime';
+
 const STORAGE_KEYS = {
-  users: 'app_users',
-  sessions: 'app_sessions',
-  authToken: 'app_auth_token',
-  pendingRegistrations: 'app_pending_registrations',
-  resetTokens: 'app_reset_tokens',
-  menuItems: 'app_menu_items',
-  avisos: 'app_avisos',
+  users: `${runtimeConfig.storagePrefix}_users`,
+  sessions: `${runtimeConfig.storagePrefix}_sessions`,
+  authToken: `${runtimeConfig.storagePrefix}_auth_token`,
+  pendingRegistrations: `${runtimeConfig.storagePrefix}_pending_registrations`,
+  resetTokens: `${runtimeConfig.storagePrefix}_reset_tokens`,
+  menuItems: `${runtimeConfig.storagePrefix}_menu_items`,
+  avisos: `${runtimeConfig.storagePrefix}_avisos`,
 };
 
 const isBrowser = typeof window !== 'undefined';
@@ -38,7 +40,16 @@ const generateOtp = () => Math.floor(100000 + Math.random() * 900000).toString()
 const seedUsers = () => {
   const users = loadValue(STORAGE_KEYS.users, []);
   if (users.length > 0) return users;
+
   const defaultUsers = [
+    {
+      id: generateId('user'),
+      email: 'admin@escolaintegral.com',
+      password: 'admin123',
+      full_name: 'Administrador Mestre',
+      role: 'admin',
+      is_master: true,
+    },
     {
       id: generateId('user'),
       email: 'admin@example.com',
@@ -46,19 +57,28 @@ const seedUsers = () => {
       full_name: 'Administrador',
       role: 'admin',
     },
-    {
+  ];
+
+  if (runtimeConfig.enableSeedData) {
+    defaultUsers.push({
       id: generateId('user'),
       email: 'aluno@example.com',
       password: 'aluno123',
       full_name: 'Aluno Local',
       role: 'user',
-    },
-  ];
+    });
+  }
+
   saveValue(STORAGE_KEYS.users, defaultUsers);
   return defaultUsers;
 };
 
 const seedMenuItems = () => {
+  if (!runtimeConfig.enableSeedData) {
+    const items = loadValue(STORAGE_KEYS.menuItems, []);
+    return items;
+  }
+
   const items = loadValue(STORAGE_KEYS.menuItems, []);
   if (items.length > 0) return items;
 
@@ -90,6 +110,11 @@ const seedMenuItems = () => {
 };
 
 const seedAvisos = () => {
+  if (!runtimeConfig.enableSeedData) {
+    const items = loadValue(STORAGE_KEYS.avisos, []);
+    return items;
+  }
+
   const items = loadValue(STORAGE_KEYS.avisos, []);
   if (items.length > 0) return items;
 
@@ -131,6 +156,12 @@ const saveAvisos = (items) => saveValue(STORAGE_KEYS.avisos, items);
 const saveSessions = (sessions) => saveValue(STORAGE_KEYS.sessions, sessions);
 const savePendingRegistrations = (data) => saveValue(STORAGE_KEYS.pendingRegistrations, data);
 const saveResetTokens = (data) => saveValue(STORAGE_KEYS.resetTokens, data);
+
+const debugLog = (...args) => {
+  if (runtimeConfig.debugLogs && typeof console !== 'undefined') {
+    console.info(...args);
+  }
+};
 
 const getCurrentToken = () => (storage ? storage.getItem(STORAGE_KEYS.authToken) : null);
 const setCurrentToken = (token) => {
@@ -274,9 +305,7 @@ const auth = {
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
     savePendingRegistrations(pending);
-    if (typeof window !== 'undefined') {
-      console.info(`OTP para ${email}: ${otp}`);
-    }
+    debugLog(`OTP para ${email}: ${otp}`);
     return { success: true };
   },
 
@@ -310,9 +339,7 @@ const auth = {
     entry.otp = generateOtp();
     entry.expiresAt = Date.now() + 30 * 60 * 1000;
     savePendingRegistrations(pending);
-    if (typeof window !== 'undefined') {
-      console.info(`Novo OTP para ${email}: ${entry.otp}`);
-    }
+    debugLog(`Novo OTP para ${email}: ${entry.otp}`);
     return { success: true };
   },
 
@@ -329,9 +356,7 @@ const auth = {
       expiresAt: Date.now() + 30 * 60 * 1000,
     };
     saveResetTokens(resetTokens);
-    if (typeof window !== 'undefined') {
-      console.info(`Reset token para ${email}: ${token}`);
-    }
+    debugLog(`Reset token para ${email}: ${token}`);
     return { success: true };
   },
 
@@ -401,6 +426,38 @@ const entities = {
     filter: async (query = {}, sort = '', limit = 200) => {
       const items = loadAvisos().filter((item) => matchesQuery(item, query));
       return sortItems(items, sort).slice(0, limit);
+    },
+    delete: async (id) => {
+      const items = loadAvisos();
+      const updated = items.filter((item) => item.id !== id);
+      saveAvisos(updated);
+      return true;
+    },
+    update: async (id, payload) => {
+      const items = loadAvisos();
+      const index = items.findIndex((item) => item.id === id);
+      if (index === -1) {
+        throw new Error('Aviso não encontrado');
+      }
+      const updatedItem = {
+        ...items[index],
+        ...payload,
+        updated_date: new Date().toISOString(),
+      };
+      items[index] = updatedItem;
+      saveAvisos(items);
+      return updatedItem;
+    },
+    create: async (payload) => {
+      const items = loadAvisos();
+      const newItem = {
+        id: generateId('aviso'),
+        ...payload,
+        created_date: new Date().toISOString(),
+      };
+      items.unshift(newItem);
+      saveAvisos(items);
+      return newItem;
     },
   },
 };

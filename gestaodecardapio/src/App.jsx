@@ -1,10 +1,10 @@
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
+import { QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import PageNotFound from './lib/PageNotFound';
+import { Toaster } from '@/components/ui/toaster';
+import { queryClientInstance } from '@/lib/query-client';
+import PageNotFound from '@/lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
-import ScrollToTop from './components/ScrollToTop';
+import ScrollToTop from '@/components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -13,7 +13,6 @@ import ResetPassword from '@/pages/ResetPassword';
 import Home from '@/pages/Home';
 import Admin from '@/pages/Admin';
 import CardapioSemanal from '@/pages/CardapioSemanal';
-// Add page imports here
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth } = useAuth();
