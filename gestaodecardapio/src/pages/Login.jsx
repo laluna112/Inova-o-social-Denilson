@@ -13,14 +13,25 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     setLoading(true);
     try {
-      await client.auth.loginViaEmailPassword(email, password);
-      window.location.href = "/";
+      const user = await client.auth.loginViaEmailPassword(email, password);
+      // If admin intent selected, require the user to have role 'admin'
+      if (isAdmin) {
+        if (!user || user.role !== "admin") {
+          // invalidate session
+          client.auth.logout();
+          throw new Error('Acesso negado: usuário não é administrador');
+        }
+        window.location.href = "/admin";
+      } else {
+        window.location.href = "/";
+      }
     } catch (err) {
       setError(err.message || "E-mail ou senha inválidos");
     } finally {
@@ -29,7 +40,7 @@ export default function Login() {
   };
 
   const handleGoogle = () => {
-    client.auth.loginWithProvider("google", "/");
+    client.auth.loginWithProvider("google", isAdmin ? "/admin" : "/");
   };
 
   return (
@@ -42,8 +53,8 @@ export default function Login() {
         </div>
         <div className="relative z-10 flex flex-col justify-between p-12 text-white">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <UtensilsCrossed className="w-6 h-6" />
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center shadow-lg ring-2 ring-white/30">
+              <UtensilsCrossed className="w-8 h-8" />
             </div>
             <div>
               <h1 className="font-bold text-lg leading-tight">Merenda Escolar</h1>
@@ -75,8 +86,8 @@ export default function Login() {
         >
           {/* Mobile brand */}
           <div className="lg:hidden flex flex-col items-center mb-8">
-            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-md mb-3">
-              <UtensilsCrossed className="w-7 h-7 text-white" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center shadow-lg ring-4 ring-orange-100 mb-3">
+              <UtensilsCrossed className="w-8 h-8 text-white" />
             </div>
             <h1 className="font-heading text-xl font-bold text-stone-800">Merenda Escolar</h1>
             <p className="text-xs text-stone-400">Escola Integral</p>
@@ -89,10 +100,10 @@ export default function Login() {
 
           <Button
             variant="outline"
-            className="w-full h-12 text-sm font-medium mb-5 border-stone-200 hover:bg-stone-50"
+            className="w-full h-12 text-sm font-medium mb-5 border-stone-200 hover:bg-stone-50 shadow-sm"
             onClick={handleGoogle}
           >
-            <GoogleIcon className="w-5 h-5 mr-2" />
+            <GoogleIcon className="w-6 h-6 mr-2" />
             Entrar com Google
           </Button>
 
@@ -114,6 +125,16 @@ export default function Login() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="flex items-center gap-2">
+              <input
+                id="admin"
+                type="checkbox"
+                checked={isAdmin}
+                onChange={(e) => setIsAdmin(e.target.checked)}
+                className="w-4 h-4"
+              />
+              <label htmlFor="admin" className="text-sm text-stone-600">Entrar como administrador</label>
+            </div>
             <div className="space-y-2">
               <Label htmlFor="email" className="text-stone-700">E-mail</Label>
               <div className="relative">
